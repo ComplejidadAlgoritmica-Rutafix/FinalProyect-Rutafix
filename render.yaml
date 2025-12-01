@@ -4,14 +4,14 @@ services:
     name: rutafix-backend
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: cd Back && uvicorn infrastructure.api.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn Back.infrastructure.api.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
 
   # Frontend Service (Static Site)
-  - type: web
+  - type: static
     name: rutafix-frontend
-    env: static
+    env: node
     buildCommand: cd Front && npm install && npm run build
     staticPublishPath: Front/dist

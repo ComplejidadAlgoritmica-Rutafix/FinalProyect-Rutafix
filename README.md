@@ -1,112 +1,140 @@
 # RutaFix: Sistema de Optimización de Rutas de Intervención Vial
 
+**Proyecto de Complejidad Algorítmica - Grupo 03**
 
-**Proyecto de Complejidad Algorítmica - Grupo 03**  
-
-### Capas del Sistema
-
-1.  **Dominio (Domain)**
-    *   *El corazón del negocio.* Aquí viven las reglas y entidades puras.
-    *   **Modelos**: `Cluster`, `Route`, `Point`.
-    *   **Servicios**: Lógica de algoritmos TSP (`TSPService`) y Clustering (`ClusteringService`).
-    *   *No depende de nadie, todos dependen de él.*
-
-2.  **Infraestructura (Infrastructure)**
-    *   *Los detalles técnicos.* Implementaciones concretas y conexiones externas.
-    *   **Repositorios**: Carga de datos desde CSV (`FileRepository`).
-    *   **API**: Endpoints REST con FastAPI (`routers`).
-
-3.  **Aplicación (Application)**
-    *   *La orquestación.* Conecta el mundo exterior con el dominio.
-    *   **Casos de Uso**: Coordinan la ejecución de clustering y optimización.
+RutaFix es una plataforma diseñada para optimizar rutas de intervención vial utilizando algoritmos avanzados de teoría de grafos y heurísticas. El sistema permite gestionar grandes volúmenes de puntos de intervención, agruparlos eficientemente y calcular las rutas más cortas para las cuadrillas de trabajo.
 
 ---
 
-## Estructura Interactiva del Proyecto
+## 🏗️ Arquitectura del Sistema (DDD)
 
-Explora cómo se relacionan los archivos principales:
+El proyecto sigue una arquitectura basada en **Domain-Driven Design (DDD)** para desacoplar la lógica de negocio de la infraestructura y la interfaz de usuario.
 
-```mermaid
-graph TD
-    Root[📂 Proyecto] --> Back[📂 Back (Backend FastAPI)]
-    Root --> Front[📂 Front (Frontend React)]
+### 1. Capa de Dominio (Domain)
+*El núcleo del sistema. Contiene la lógica pura y las reglas de negocio.*
+- **Modelos**: Definiciones de `Cluster`, `Route`, `Point`.
+- **Servicios**:
+    - `TSPService`: Implementa los algoritmos de resolución del problema del viajero (TSP).
+    - `ClusteringService`: Se encarga de agrupar los puntos utilizando K-Means antes de la optimización.
 
-    subgraph Backend
-    Back --> Infra[📂 infrastructure]
-    Back --> Domain[📂 domain]
-    
-    Infra --> API[📂 api]
-    Infra --> Repos[📂 repositories]
-    
-    Domain --> Models[📂 models]
-    Domain --> Services[📂 services]
-    end
+### 2. Capa de Infraestructura (Infrastructure)
+*Detalles técnicos y comunicación con el exterior.*
+- **API**: Endpoints REST construidos con **FastAPI**.
+- **Repositorios**: Manejo de lectura de datos desde archivos CSV y Excel (`FileRepository`).
 
-    subgraph Frontend
-    Front --> Components[📂 components]
-    Front --> ServicesFront[📂 services]
-    end
+### 3. Capa de Presentación (Frontend)
+*Interfaz de usuario interactiva.*
+- Construida con **React**, **TypeScript** y **Tailwind CSS**.
+- Utiliza **Leaflet** para la visualización de mapas y rutas.
+
+---
+
+## 📂 Estructura del Proyecto
+
+```text
+📂 FinalProyect_ComplejidadAlgo-Grupo3
+ ├── 📂 Back (Backend Python/FastAPI)
+ │    ├── 📂 domain
+ │    │    ├── 📂 models       # Definición de datos (Cluster, Route)
+ │    │    └── 📂 services     # Lógica (TSP, K-Means)
+ │    └── 📂 infrastructure
+ │         ├── 📂 api          # Endpoints que reciben peticiones
+ │         └── 📂 repositories # Lectura de archivos CSV/Excel
+ │
+ └── 📂 Front (Frontend React/TypeScript)
+      └── 📂 src
+           ├── 📂 components   # Piezas visuales (Mapa, Sidebar)
+           └── 📄 App.tsx      # Cerebro de la interfaz
 ```
 
 ### Guía de Archivos Clave
 
-| Archivo / Carpeta | Capa (DDD) | ¿Qué hace? |
+| Archivo | Ubicación | Descripción |
+| :--- | :--- | :--- |
+| **`tsp_service.py`** | `Back/domain/services/` | **Motor Algorítmico.** Contiene las implementaciones de Fuerza Bruta, Backtracking, Vecino Cercano y MST. |
+| **`clustering_service.py`** | `Back/domain/services/` | **Agrupamiento.** Lógica de K-Means para dividir grandes conjuntos de puntos. |
+| **`optimization.py`** | `Back/infrastructure/api/routers/` | **API Router.** Endpoint principal que orquesta la recepción de datos y la ejecución de algoritmos. |
+| **`App.tsx`** | `Front/src/` | **Controlador UI.** Maneja el estado global, la barra lateral de configuración y la lógica de la aplicación. |
+| **`MapView.tsx`** | `Front/src/components/` | **Visualizador.** Componente de mapa interactivo que renderiza clusters, rutas y marcadores. |
+
+---
+
+## 🧠 Algoritmos Implementados
+
+El sistema ofrece múltiples estrategias para resolver el problema de enrutamiento (TSP), seleccionables manual o automáticamente:
+
+| Algoritmo | Complejidad | Descripción |
 | :--- | :---: | :--- |
-| **`Back/domain/services/tsp_service.py`** | Dominio | **El Cerebro.** Contiene los algoritmos TSP (Fuerza Bruta, Backtracking, Vecino Cercano). |
-| **`Back/domain/services/clustering_service.py`** | Dominio | **El Organizador.** Divide miles de puntos en grupos (clusters) usando K-Means. |
-| **`Back/infrastructure/api/routers/optimization.py`** | Infra | **El Controlador.** Recibe las peticiones del Frontend y devuelve las rutas optimizadas. |
-| **`Back/infrastructure/repositories/data_loader.py`** | Infra | **El Cargador.** Lee y procesa el archivo CSV masivo de intervenciones. |
-| **`Front/src/components/MapView.tsx`** | UI | **El Mapa.** Componente principal que dibuja rutas, clusters y maneja la interacción visual. |
-| **`Front/src/components/Sidebar.tsx`** | UI | **El Panel.** Menú lateral para configurar algoritmos, fechas y modos de uso. |
+| **Automático** | Variable | **Recomendado.** Selecciona la mejor estrategia según el número de puntos (`N`). <br>• `N <= 8`: Fuerza Bruta <br>• `N <= 12`: Backtracking <br>• `N > 12`: Vecino Más Cercano |
+| **Fuerza Bruta** | `O(N!)` | Evalúa **todas** las permutaciones posibles. Garantiza la solución óptima absoluta pero es inviable para `N > 10`. |
+| **Backtracking** | `O(N!)` | Similar a fuerza bruta pero con **poda**. Descarta ramas que ya superan la mejor distancia encontrada, mejorando el tiempo promedio. |
+| **Vecino Más Cercano** | `O(N²)` | Heurística voraz (Greedy). En cada paso va al punto más cercano no visitado. Muy rápido y eficiente para grandes volúmenes. |
+| **Kruskal (MST)** | `O(E log E)` | Aproximación basada en el Árbol de Expansión Mínima. Útil para estructuras de red. |
+
+> **Nota sobre Clustering:** Para manejar miles de puntos, el sistema primero aplica **K-Means** para dividir el problema en sub-problemas (clusters) más pequeños, que luego son resueltos individualmente por el algoritmo TSP seleccionado.
 
 ---
 
-## Algoritmos y Rendimiento
+## 🚀 Modos de Uso
 
-El sistema selecciona automáticamente el mejor algoritmo según la complejidad del problema:
+La interfaz permite cuatro modos de operación distintos:
 
-| Algoritmo | Complejidad | Uso Ideal | ¿Por qué? |
-| :--- | :---: | :--- | :--- |
-| **Fuerza Bruta** | `O(n!)` | `n <= 8` | Garantiza la ruta **perfecta** probando todas las combinaciones. |
-| **Backtracking (Poda)** | `O(n!)` | `n <= 12` | Inteligente. Corta caminos que ya son peores que el mejor encontrado. |
-| **Vecino Más Cercano** | `O(n²)` | `n > 12` | **Velocidad extrema.** Para grandes volúmenes, da una solución muy buena en milisegundos. |
+1.  **📅 Base CSV (Dataset)**
+    *   Carga los datos históricos de intervenciones del MTC.
+    *   Permite filtrar por fechas de corte (semestres).
+    *   Ideal para visualizar la carga de trabajo real.
 
-> **Optimización K-Means:** Al dividir 100 puntos en 10 clusters de 10, pasamos de un problema imposible `O(100!)` a 10 problemas triviales `O(10!)`. ¡Divide y vencerás!
+2.  **📤 Subir Excel**
+    *   Permite al usuario cargar sus propios archivos `.xlsx` o `.csv`.
+    *   **Formato requerido:** Columnas `Nombre`, `Latitud`, `Longitud`.
+
+3.  **👆 Manual**
+    *   Modo interactivo para pruebas rápidas.
+    *   Haz clic directamente en el mapa para agregar puntos de destino.
+
+4.  **🎲 Aleatorio**
+    *   Genera puntos aleatorios en la región de Lima/Perú.
+    *   Útil para pruebas de estrés y demostración de rendimiento.
 
 ---
 
-## Instalación y Uso
+## 🛠️ Instalación y Ejecución
 
-### 1. Backend (Python/FastAPI)
+### Requisitos Previos
+- Python 3.8+
+- Node.js 16+
+
+### 1. Iniciar Backend
 
 ```bash
 cd Back
+# Crear entorno virtual (opcional pero recomendado)
+python -m venv venv
+.\venv\Scripts\activate  # Windows
+
+# Instalar dependencias
 pip install -r requirements.txt
+
+# Ejecutar servidor
 uvicorn infrastructure.api.main:app --reload
 ```
-*El servidor iniciará en `http://localhost:8000`*
+*API disponible en: `http://localhost:8000`*
 
-### 2. Frontend (React/Vite)
+### 2. Iniciar Frontend
 
 ```bash
 cd Front
+# Instalar dependencias
 npm install
+
+# Ejecutar servidor de desarrollo
 npm run dev
 ```
-*La web abrirá en `http://localhost:5173`*
+*Aplicación disponible en: `http://localhost:5173`*
 
 ---
 
-## Modos de Uso
-
-1.  **Modo CSV**: Carga la base de datos real. Filtra por semestres y visualiza miles de intervenciones.
-2.  **Modo Aleatorio**: Genera puntos en la **Macro Región Centro-Sur (Trujillo a Nazca)**. ¡Prueba la escalabilidad!
-3.  **Modo Manual**: Haz clic en el mapa para crear tus propios puntos y planificar una ruta personalizada.
-4.  **Carga Propia**: Sube tu propio Excel/CSV con direcciones.
-
----
-
-## Equipo de Desarrollo
+## 👥 Equipo
 
 | Integrante | Rol |
 | :--- | :--- |
@@ -114,4 +142,4 @@ npm run dev
 | **Grupo 03** | Algoritmos & QA |
 
 ---
-*Desarrollado con ❤️ y mucho café para el curso de Complejidad Algorítmica.*
+*Desarrollado para el curso de Complejidad Algorítmica.*
